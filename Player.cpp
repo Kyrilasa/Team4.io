@@ -119,6 +119,7 @@ vector<Tile> Player::getTilesO()
 double Player::getPercentO()
 {
 
+    return 0;
 }
 
 
@@ -186,5 +187,6 @@ void Player::setAlive(bool alive)
 
 int Player::compareTo(Player *player)
 {
+    return 0;
 }
 
