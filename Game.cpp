@@ -2,20 +2,25 @@
 #include <iostream>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>
+#include <unordered_set>
+#include <stack>
+#include <algorithm>
+
+//b static variables
+vector<vector<Tile*>*>Game::gameArea;
+bool Game::quit = false;
+//e static variables
+
 Game::Game(int areaHeight,int areaWidth,string playerName,SDL_Window *window)
 {
 
     renderer =  SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
     this->areaHeight = areaHeight;
     this->areaWidth = areaWidth;
-    this->Players.push_back(new Player(areaHeight, areaWidth, {0,0,255},playerName));
+    this->ThePlayer = new Player(areaHeight, areaWidth, {0,0,255},playerName);
 
     initBoard();
 
-//        initBoard();
-//
-//        painters.add(new Painter(scale, this, humanPlayers.get(0), players));
-//        player_painter.put(humanPlayers.get(0), painters.get(0));
 }
 
 Game::~Game()
@@ -24,87 +29,73 @@ Game::~Game()
 }
 void Game::initBoard()
 {
-
-    srand (time(NULL));
-
-    auto renderTiles = [](SDL_Renderer* _rend,Tile* k)
+    //render tiles for the first time && around  player...
+    for(int i = 0; i < areaHeight/10; i++)
     {
-
-                    SDL_SetRenderDrawColor( _rend, k->getColor().r, k->getColor().g,k->getColor().b, 255 );
-                    SDL_RenderFillRect( _rend, &k->rectangle );
-                    SDL_RenderPresent(_rend);
-
-    };
-    for(int i = 0; i < areaHeight/25+2; i++)
-    {
-        for(int j = 0; j < areaWidth/25+2; j++)
+        Game::gameArea.push_back(new vector<Tile*>());
+        for(int j = 0; j < areaWidth/10; j++)
         {
-            this->gameArea.push_back(new Tile(j*25,i*25,{255,255,255}));
-            renderTiles(this->renderer,gameArea.back());
+            Game::gameArea[i]->push_back(new Tile(j*10,i*10,{150,10,255}));
+            Game::gameArea[i]->back()->render(this->renderer);
+
         }
     }
+    startingArea(this->ThePlayer);
+    SDL_RenderPresent(this->renderer);
 
 }
+//draws 1-1 tile-owned around player
 void Game::startingArea(Player* player)
 {
     int x = player->getX();
     int y = player->getY();
-    for(int i = x-1; i <= x+1; i++)
+
+    for(int i = x-10; i <= x+10; i+=10)
     {
-        for(int j = y-1; j <= y+1; j++)
+        for(int j = y-10; j <= y+10; j+=10)
         {
+
             player->setTileO(getTile(i,j));
         }
     }
 }
-bool Game::checkSpawn(Player* player)
-{
-    int x = player->getX();
-    int y = player->getY();
-    for(int i = x-3; i <= x+3; i++)
-    {
-        for (int j = y - 3; j <= y + 3; j++)
-        {
-            if (getTile(i, j)->getOwner() != nullptr || getTile(i, j)->getContestedO() != nullptr )
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
+
 Tile* Game::getTile(int x,int y)
 {
-    return gameArea[y];
+
+    return Game::gameArea.at(y/10)->at(x/10);
 }
 void Game::render()
 {
-//    auto renderBackground = [](SDL_Renderer* _rend)
-//    {
-//        SDL_SetRenderDrawColor( _rend, 255, 0, 0, 255 );
-//        SDL_RenderClear( _rend);
-//    };
-
-    auto renderPlayer = [](SDL_Renderer* _rend,Player *r)
+    //b render Tiles
+    for(auto p:this->gameArea)
     {
+        vector<Tile*> tmp(p->begin(),p->end());
+        for(auto k:tmp)
+        {
+            k->render(this->renderer);
+        }
+    }SDL_RenderPresent(this->renderer);
+    //e render Tiles
 
-        SDL_SetRenderDrawColor( _rend, r->getColor().r, r->getColor().g,r->getColor().b, 255 );
-        SDL_RenderFillRect( _rend, &r->rectangle );
-        SDL_RenderPresent(_rend);
-    };
-    for(auto p:this->Players)
-    {
-        renderPlayer(this->renderer,p);
-    }
+    //b render Player
+    this->ThePlayer->render(this->renderer);
+    //e render Player
+
 
 }
+
+void Game::fillContested(Player* player) {
+
+    }
+
+//Main game logic
 void Game::update(SDL_Event e)
 {
-    for(auto p:this->Players)
-    {
-        while(SDL_PollEvent(&e)!=0)
+
+        while( SDL_PollEvent(&e)!=0)
         {
-            if( e.type == SDL_QUIT )
+            if( e.type == SDL_QUIT)
             {
                 quit = true;
             }
@@ -113,43 +104,31 @@ void Game::update(SDL_Event e)
                 switch(e.key.keysym.sym)
                 {
                 case SDLK_LEFT:
-                    p->dx = -1;
-                    p->dy= 0;
+                    this->ThePlayer->dx = -10;
+                    this->ThePlayer->dy= 0;
                     break;
                 case SDLK_RIGHT:
-                    p->dx= 1;
-                    p->dy=0;
+                    this->ThePlayer->dx= 10;
+                    this->ThePlayer->dy=0;
                     break;
                 case SDLK_UP:
-                    p->dx= 0;
-                    p->dy=-1;
+                    this->ThePlayer->dx= 0;
+                    this->ThePlayer->dy=-10;
                     break;
                 case SDLK_DOWN:
-                    p->dx= 0;
-                    p->dy=1;
+                    this->ThePlayer->dx= 0;
+                    this->ThePlayer->dy=10;
                     break;
                 default:
                     break;
                 }
             }
 
+        }
+this->ThePlayer->update();
 
-        }
-        if(p->dx==-1)
-        {
-            p->rectangle.x-=10;
-        }
-        else if(p->dx==1)
-        {
-            p->rectangle.x+=10;
-        }
-        else if(p->dy==-1)
-        {
-            p->rectangle.y-=10;
-        }
-        else if(p->dy==1)
-        {
-            p->rectangle.y+=10;
-        }
-    }
+
+
+
+
 }

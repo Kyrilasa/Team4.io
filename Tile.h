@@ -12,7 +12,8 @@ class Tile
         SDL_Color getColor();
         Player* getContestedO();
         void setContestedO(Player *contestedO);
-        Player getOwner();
+        Player* getOwner();
+        void render(SDL_Renderer *r);
         void setOwner(Player *owner);
         int getX();
         int getY();

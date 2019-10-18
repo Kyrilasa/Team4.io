@@ -9,8 +9,10 @@ Tile::Tile(int x, int y,SDL_Color _color)
     this->color.b = _color.b;
     this->rectangle.x = x;
     this->rectangle.y = y;
-    this->rectangle.w=25;
-    this->rectangle.h=25;
+    this->rectangle.w=10;
+    this->rectangle.h=10;
+    this->owner=nullptr;
+    this->contestedO = nullptr;
 }
 
 Tile::~Tile()
@@ -19,8 +21,29 @@ Tile::~Tile()
 }
 SDL_Color Tile::getColor()
 {
-
-    return this->color;
+    if(this->getOwner()&&!this->getContestedO())
+    {
+    return this->getOwner()->getColor();
+    }else if(this->getOwner()&&this->getContestedO())
+    {
+        SDL_Color c;
+        c.a = 100;
+        c.r = this->getContestedO()->getColor().r;
+        c.g = this->getContestedO()->getColor().g;
+        c.b = this->getContestedO()->getColor().b;
+    return c;
+    }else if(!this->getOwner()&&this->getContestedO())
+    {
+        SDL_Color c;
+        c.a = 100;
+        c.r = this->getContestedO()->getColor().r;
+        c.g = this->getContestedO()->getColor().g;
+        c.b = this->getContestedO()->getColor().b;
+        return c;
+    }else
+    {
+        return this->color;
+    }
 }
 Player* Tile::getContestedO()
 {
@@ -30,16 +53,13 @@ void Tile::setContestedO(Player *contestedOwner)
 {
     this->contestedO = contestedOwner;
 }
-Player Tile::getOwner()
+Player* Tile::getOwner()
 {
-    return *this->owner;
+    return this->owner;
 }
 void Tile::setOwner(Player *owner)
 {
-    if(this->owner != nullptr)
-    {
-        this->owner->removeTileO(*this);
-    }
+
     this->owner = owner;
 }
 
@@ -51,4 +71,10 @@ int Tile::getX()
 int Tile::getY()
 {
     return this->rectangle.y;
+}
+void Tile::render(SDL_Renderer *_rend)
+{
+
+                    SDL_SetRenderDrawColor( _rend, this->getColor().r, this->getColor().g,this->getColor().b,100);
+                    SDL_RenderFillRect( _rend, &this->rectangle );
 }

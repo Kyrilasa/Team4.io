@@ -11,20 +11,22 @@ class Game
         void render();
         void update(SDL_Event e);
         SDL_Renderer* renderer = nullptr;
-        bool quit = false;
+
+        static bool quit;
+        static Tile* getTile(int x,int y);
+        static vector<vector<Tile*>*>gameArea;
 
     protected:
 
     private:
         void initBoard();
-        Tile* getTile(int x,int y);
         void startingArea(Player* player);
-        bool checkSpawn(Player* player);
-        int areaHeight;
-        int areaWidth;
-        vector<Player*> Players;
+        void fillContested(Player* player);
+         int areaHeight;
+         int areaWidth;
+//        vector<Player*> Players;
+        Player* ThePlayer;
         map<Tile, Player> tilePlayerMap;
-        vector<Tile*>gameArea;
 };
 
 #endif // GAME_H

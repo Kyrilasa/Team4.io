@@ -28,13 +28,12 @@ int main(int argc,char* args[])
     SDL_Event e;
     Game game(HEIGHT,WIDTH,"dummy",window);
 //    gameloop
-    while(!game.quit)
+    while(!Game::quit)
     {
 
                 game.update(e);
                 game.render();
-                SDL_Delay(200);
-
+                SDL_Delay(160);
     }
     SDL_Quit();
     return 0;

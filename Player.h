@@ -23,18 +23,20 @@ public:
     void move();
     void die();
     void setTileO(Tile *t);
-    void removeTileO(Tile t);
-    vector<Tile> getTilesO();
+    void removeTileO(Tile *t);
+    vector<Tile*> getTilesO();
     double getPercentO();
-    void setTileC(Tile t);
-    vector<Tile> getTilesC();
+    void setTileC(Tile* t);
+    vector<Tile*> getTilesC();
     void contestToO();
-    void checkCollision(Tile t);
+    void checkCollision(Tile* t);
     void setCurrentTile(Tile *currentTile);
     int getDx();
     int getDy();
     string getName();
     bool getAlive();
+    void update();
+    void render(SDL_Renderer* renderer);
     void setAlive(bool alive);
     int compareTo(Player *player);//compares two player's owned territory
     bool operator!=(Player *other)
@@ -43,8 +45,8 @@ public:
     }
 
 private:
-    vector<Tile> tilesC;
-    vector<Tile> tilesO;
+    vector<Tile*> tilesC;
+    vector<Tile*> tilesO;
     SDL_Color color;
     Tile* currentTile;
     bool isAlive = true;
