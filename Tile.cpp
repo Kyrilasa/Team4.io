@@ -1,6 +1,5 @@
 #include "Tile.h"
 #include "Player.h"
-#include <iostream>
 Tile::Tile(int x, int y,SDL_Color _color)
 {
 

@@ -89,7 +89,6 @@ SDL_Color Player::getColor()
 
 void Player::move()
 {
-    std::cout<<getX()<<" "<<getY()<<std::endl;
     this->rectangle.x+=dx;
     this->rectangle.y+=dy;
 }
@@ -173,7 +172,7 @@ void Player::checkCollision(Tile* t)
     if(t->getContestedO() != nullptr)
     {
         t->getContestedO()->die();
-        std::cout<<"halal"<<std::endl;
+        std::cout<<"Player died."<<std::endl;
     }
 }
 
@@ -223,14 +222,15 @@ void Player::update()
                 this->die();
 
             }else{
-                Tile* tile = Game::getTile(this->getX(), this->getY());
+                Tile* tile = Game::getTile(this->getX(), this->getY(),gameAreaWidth,gameAreaHeight);
                 this->checkCollision(tile);
                 this->setCurrentTile(tile);
                 if (tile->getOwner() != this) {
                     this->setTileC(tile);
                 } else if (this->getTilesC().size() > 0) {
+
+                    Game::fillContested(this,this->gameAreaWidth,this->gameAreaHeight);
                     this->contestToO();
-                  //TODO fillContested(this);
 
                 }
             }

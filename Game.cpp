@@ -1,10 +1,5 @@
 #include "Game.h"
 #include <iostream>
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>
-#include <unordered_set>
-#include <stack>
-#include <algorithm>
 
 //b static variables
 vector<vector<Tile*>*>Game::gameArea;
@@ -55,14 +50,22 @@ void Game::startingArea(Player* player)
         for(int j = y-10; j <= y+10; j+=10)
         {
 
-            player->setTileO(getTile(i,j));
+            player->setTileO(getTile(i,j,this->areaWidth,this->areaHeight));
         }
     }
 }
 
-Tile* Game::getTile(int x,int y)
+Tile* Game::getTile(int x,int y,int gameAreaWidth,int gameAreaHeight)
 {
-
+    //TODO get rid of this
+    if(x>=gameAreaWidth)
+    {
+        return Game::gameArea.at(y/10)->at((x-10)/10);
+    }
+    if(x<0)
+    {
+        return Game::gameArea.at(y/10)->at((x+10)/10);
+    }
     return Game::gameArea.at(y/10)->at(x/10);
 }
 void Game::render()
@@ -85,8 +88,67 @@ void Game::render()
 
 }
 
-void Game::fillContested(Player* player) {
+void Game::fillContested(Player* player,int gameAreaWidth,int gameAreaHeight) {
+        int maxX = 0;
+        int minX = gameAreaWidth;
+        int maxY = 0;
+        int minY = gameAreaHeight;
+        for (auto t : player->getTilesC()) {
+            if(t->getX() > maxX) maxX = t->getX();
+            if(t->getX() < minX) minX = t->getX();
+            if(t->getY() > maxY) maxY = t->getY();
+            if(t->getY() < minY) minY = t->getY();
+        }
+        //if player reconnect to base from the right.
+        if(Game::getTile(minX-10,minY,gameAreaWidth,gameAreaHeight)->getOwner()==player)
+        {
+            minX-=10;
+        }
 
+        vector<Tile*> needToFill;
+    for(auto i = minY;i<=maxY;i+=10)
+    {
+            for(auto j= minX;j<=maxX;j+=10)
+            {
+                Tile *tmpTile = Game::getTile(j,i,gameAreaWidth,gameAreaHeight);
+
+                if((tmpTile->getContestedO()==player||tmpTile->getOwner()==player))
+                {
+                    if(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getContestedO()==nullptr)
+                    {
+//                        case
+//                        100000001111000|
+//                        where contested is 1 ,| is the border and 0 needs to be filled with player color
+
+                        Tile* startNode = Game::getTile(j,i,gameAreaWidth,gameAreaHeight);
+                        while(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getContestedO()==nullptr&&(j+10)<=maxX)
+                        {
+                        j+=10;
+                        }
+                        Tile* endNode = Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight);
+
+
+                        if(endNode->getContestedO()!=nullptr||endNode->getOwner()==player)
+                        {
+                            for(auto z = startNode->getX();z<=endNode->getX();z+=10)
+                              {
+                                needToFill.push_back(Game::getTile(z,i,gameAreaWidth,gameAreaHeight));
+                              }
+                        }
+                    }else if(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getContestedO()==player)
+                    {
+                        continue;
+                    }
+                }
+
+
+            }
+    }
+    for(auto t:needToFill)
+    {
+        player->setTileO(t);
+
+    }
     }
 
 //Main game logic
