@@ -1,5 +1,6 @@
 #include "Tile.h"
 #include "Player.h"
+#include "Game.h"
 Tile::Tile(int x, int y,SDL_Color _color)
 {
 
@@ -73,7 +74,13 @@ int Tile::getY()
 }
 void Tile::render(SDL_Renderer *_rend)
 {
-
+        //camera
+        SDL_Rect rectangleTmp;
+        rectangleTmp.x = rectangle.x-Game::camera.x;
+        rectangleTmp.h = rectangle.h;
+        rectangleTmp.w = rectangle.w;
+        rectangleTmp.y = rectangle.y-Game::camera.y;
                     SDL_SetRenderDrawColor( _rend, this->getColor().r, this->getColor().g,this->getColor().b,100);
-                    SDL_RenderFillRect( _rend, &this->rectangle );
+                    SDL_RenderFillRect( _rend, &rectangleTmp );
 }
+

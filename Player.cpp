@@ -16,14 +16,14 @@ int RoundNum(int num, int step)
 Player::Player(int _height,int _width, SDL_Color _color,string _name)
 {
     srand (time(NULL));
-    this->rectangle.x = RoundNum(round((int)(rand() % ((_width)) +1)),10);
-    this->rectangle.y = RoundNum(round((int)(rand() % (_height) +1)),10 );
+    this->rectangle.x = RoundNum(round((int)(rand() % ((Game::LEVEL_WIDTH)) +1)),10);
+    this->rectangle.y = RoundNum(round((int)(rand() % (Game::LEVEL_HEIGHT) +1)),10 );
 
     if(this->rectangle.x < 0)
     {
         this->rectangle.x += 10;
     }
-    else if(this->rectangle.x > (_width-10))
+    else if(this->rectangle.x > (Game::LEVEL_WIDTH-10))
     {
         this->rectangle.x-= 10;
     }
@@ -31,13 +31,13 @@ Player::Player(int _height,int _width, SDL_Color _color,string _name)
     {
         this->rectangle.y+= 10;
     }
-    else if(this->rectangle.y > (_height) - 10)
+    else if(this->rectangle.y > (Game::LEVEL_HEIGHT) - 10)
     {
         this->rectangle.y -= 10;
     }
-    this->color.r = _color.r;
-    this->color.g = _color.g;
-    this->color.b = _color.b;
+    this->tileColor.r = _color.r;
+    this->tileColor.g = _color.g;
+    this->tileColor.b = _color.b;
     //Player's width and height
     this->rectangle.h=10;
     this->rectangle.w=10;
@@ -84,7 +84,7 @@ int Player::getY()
 
 SDL_Color Player::getColor()
 {
-    return this->color;
+    return this->tileColor;
 }
 
 void Player::move()
@@ -95,6 +95,7 @@ void Player::move()
 
 void Player::die()
 {
+    std::cout<<"Player named: "<<this->name<<" died. The owned area was: "<<this->getPercentO()<<"%"<<std::endl;
     isAlive = false;
     Game::quit = true;
     for(auto oTC :tilesO)
@@ -109,7 +110,6 @@ void Player::die()
     this->tilesO.clear();
     this->tilesC.clear();
     this->currentTile = nullptr;
-
 }
 
 
@@ -141,7 +141,7 @@ vector<Tile*> Player::getTilesO()
 
 double Player::getPercentO()
 {
-    return 100 * this->getTilesO().size() / (double)(this->gameAreaHeight*this->gameAreaWidth)/10;
+    return (double)this->getTilesO().size()*100/(Game::LEVEL_HEIGHT*Game::LEVEL_WIDTH/100);
 }
 
 
@@ -163,6 +163,7 @@ void Player::contestToO()
     for (auto t : this->tilesC)
     {
         this->setTileO(t);
+    	t->setContestedO(nullptr);
     }
     this->tilesC.erase(this->tilesC.begin(),this->tilesC.end());
 }
@@ -172,7 +173,6 @@ void Player::checkCollision(Tile* t)
     if(t->getContestedO() != nullptr)
     {
         t->getContestedO()->die();
-        std::cout<<"Player died."<<std::endl;
     }
 }
 
@@ -218,7 +218,26 @@ int Player::compareTo(Player *player)
 void Player::update()
 {
             this->move();
-            if(this->getX() < 0 || this->getX() >= gameAreaWidth || this->getY() < 0 || this->getY() >= gameAreaHeight){
+            Game::camera.x = ( getX() + this->rectangle.h / 2 ) - this->gameAreaWidth / 2;
+            Game::camera.y = ( getY() + this->rectangle.h / 2 ) - this->gameAreaHeight / 2;
+
+    if( Game::camera.x < 0 )
+    {
+        Game::camera.x = 0;
+    }
+    if( Game::camera.y < 0 )
+    {
+        Game::camera.y = 0;
+    }
+    if( Game::camera.x > Game::LEVEL_WIDTH - Game::camera.w )
+    {
+        Game::camera.x = Game::LEVEL_WIDTH - Game::camera.w;
+    }
+    if( Game::camera.y > Game::LEVEL_HEIGHT - Game::camera.h )
+    {
+        Game::camera.y = Game::LEVEL_HEIGHT - Game::camera.h;
+    }
+            if(this->getX() < 0 || this->getX() >= Game::LEVEL_WIDTH || this->getY() < 0 || this->getY() >= Game::LEVEL_HEIGHT){
                 this->die();
 
             }else{
@@ -228,17 +247,22 @@ void Player::update()
                 if (tile->getOwner() != this) {
                     this->setTileC(tile);
                 } else if (this->getTilesC().size() > 0) {
-
+this->contestToO();
                     Game::fillContested(this,this->gameAreaWidth,this->gameAreaHeight);
-                    this->contestToO();
+
 
                 }
             }
 }
 void Player::render(SDL_Renderer *_rend)
 {
-
-        SDL_SetRenderDrawColor( _rend, this->getColor().r, this->getColor().g,this->getColor().b, 255 );
-        SDL_RenderDrawRect( _rend, &this->rectangle );
+        SDL_SetRenderDrawColor( _rend, this->color.r, this->color.g,this->color.b, 255 );
+        //camera
+        SDL_Rect rectangleTmp;
+        rectangleTmp.x = rectangle.x-Game::camera.x;
+        rectangleTmp.h = rectangle.h;
+        rectangleTmp.w = rectangle.w;
+        rectangleTmp.y = rectangle.y-Game::camera.y;
+        SDL_RenderDrawRect(_rend,&rectangleTmp);
         SDL_RenderPresent(_rend);
 }

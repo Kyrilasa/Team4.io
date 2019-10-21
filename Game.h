@@ -10,12 +10,15 @@ class Game
         void render();
         void update(SDL_Event e);
         SDL_Renderer* renderer = nullptr;
-
+        //static variables
+        static SDL_Rect camera;
+        static int LEVEL_WIDTH ;
+        static int LEVEL_HEIGHT ;
         static bool quit;
         static Tile* getTile(int x,int y,int gameAreaWidth,int gameAreaHeight);
         static void fillContested(Player* player,int gameAreaWidth,int gameAreaHeight);
         static vector<vector<Tile*>*>gameArea;
-
+        //
     protected:
 
     private:

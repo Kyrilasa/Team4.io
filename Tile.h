@@ -14,6 +14,7 @@ class Tile
         void setContestedO(Player *contestedO);
         Player* getOwner();
         void render(SDL_Renderer *r);
+        void update();
         void setOwner(Player *owner);
         int getX();
         int getY();

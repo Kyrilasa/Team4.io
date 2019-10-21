@@ -4,6 +4,9 @@
 //b static variables
 vector<vector<Tile*>*>Game::gameArea;
 bool Game::quit = false;
+int Game::LEVEL_WIDTH = 1280;
+int Game::LEVEL_HEIGHT = 960;
+SDL_Rect Game::camera = {0,0,640,480};
 //e static variables
 
 Game::Game(int areaHeight,int areaWidth,string playerName,SDL_Window *window)
@@ -25,10 +28,10 @@ Game::~Game()
 void Game::initBoard()
 {
     //render tiles for the first time && around  player...
-    for(int i = 0; i < areaHeight/10; i++)
+    for(int i = 0; i < Game::LEVEL_HEIGHT/10; i++)
     {
         Game::gameArea.push_back(new vector<Tile*>());
-        for(int j = 0; j < areaWidth/10; j++)
+        for(int j = 0; j < Game::LEVEL_WIDTH/10; j++)
         {
             Game::gameArea[i]->push_back(new Tile(j*10,i*10,{150,10,255}));
             Game::gameArea[i]->back()->render(this->renderer);
@@ -58,7 +61,7 @@ void Game::startingArea(Player* player)
 Tile* Game::getTile(int x,int y,int gameAreaWidth,int gameAreaHeight)
 {
     //TODO get rid of this
-    if(x>=gameAreaWidth)
+    if(x>=Game::LEVEL_WIDTH)
     {
         return Game::gameArea.at(y/10)->at((x-10)/10);
     }
@@ -70,7 +73,9 @@ Tile* Game::getTile(int x,int y,int gameAreaWidth,int gameAreaHeight)
 }
 void Game::render()
 {
+
     //b render Tiles
+
     for(auto p:this->gameArea)
     {
         vector<Tile*> tmp(p->begin(),p->end());
@@ -78,7 +83,7 @@ void Game::render()
         {
             k->render(this->renderer);
         }
-    }SDL_RenderPresent(this->renderer);
+    }
     //e render Tiles
 
     //b render Player
@@ -93,7 +98,7 @@ void Game::fillContested(Player* player,int gameAreaWidth,int gameAreaHeight) {
         int minX = gameAreaWidth;
         int maxY = 0;
         int minY = gameAreaHeight;
-        for (auto t : player->getTilesC()) {
+        for (auto t : player->getTilesO()) {
             if(t->getX() > maxX) maxX = t->getX();
             if(t->getX() < minX) minX = t->getX();
             if(t->getY() > maxY) maxY = t->getY();
@@ -112,30 +117,30 @@ void Game::fillContested(Player* player,int gameAreaWidth,int gameAreaHeight) {
             {
                 Tile *tmpTile = Game::getTile(j,i,gameAreaWidth,gameAreaHeight);
 
-                if((tmpTile->getContestedO()==player||tmpTile->getOwner()==player))
+                if((tmpTile->getOwner()==player))
                 {
-                    if(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getContestedO()==nullptr)
+                    if(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getOwner()==nullptr)
                     {
 //                        case
 //                        100000001111000|
 //                        where contested is 1 ,| is the border and 0 needs to be filled with player color
 
                         Tile* startNode = Game::getTile(j,i,gameAreaWidth,gameAreaHeight);
-                        while(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getContestedO()==nullptr&&(j+10)<=maxX)
+                        while(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getOwner()==nullptr&&(j+10)<=maxX)
                         {
                         j+=10;
                         }
                         Tile* endNode = Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight);
 
 
-                        if(endNode->getContestedO()!=nullptr||endNode->getOwner()==player)
+                        if(endNode->getOwner()!=nullptr||endNode->getOwner()==player)
                         {
                             for(auto z = startNode->getX();z<=endNode->getX();z+=10)
                               {
                                 needToFill.push_back(Game::getTile(z,i,gameAreaWidth,gameAreaHeight));
                               }
                         }
-                    }else if(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getContestedO()==player)
+                    }else if(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getOwner()==player)
                     {
                         continue;
                     }
@@ -149,7 +154,10 @@ void Game::fillContested(Player* player,int gameAreaWidth,int gameAreaHeight) {
         player->setTileO(t);
 
     }
-    }
+
+
+
+}
 
 //Main game logic
 void Game::update(SDL_Event e)
@@ -188,9 +196,4 @@ void Game::update(SDL_Event e)
 
         }
 this->ThePlayer->update();
-
-
-
-
-
 }

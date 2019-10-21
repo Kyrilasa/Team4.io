@@ -4,7 +4,7 @@
 using namespace std;
 #define BLUE {0,0,255}
 const int WIDTH = 640;
-const int HEIGHT = 640;
+const int HEIGHT = 480;
 int main(int argc,char* args[])
 {
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -33,7 +33,7 @@ int main(int argc,char* args[])
 
                 game.update(e);
                 game.render();
-                SDL_Delay(160);
+                SDL_Delay(16);
     }
     SDL_Quit();
     return 0;
