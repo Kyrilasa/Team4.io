@@ -1,6 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <string>
 #include <vector>
 using namespace std;
@@ -8,7 +8,7 @@ class Tile;//forward declaration mert circular dependency
 class Player
 {
 public:
-    Player(int _height,int _width, SDL_Color _color,string Name);
+    Player(int _height,int _width,string Name);
     virtual ~Player();
 
     SDL_Rect rectangle;//Player's x,y height and width

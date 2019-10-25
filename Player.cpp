@@ -13,7 +13,7 @@ int RoundNum(int num, int step)
     else
         return ((num - (step / 2)) / step) * step;
 }
-Player::Player(int _height,int _width, SDL_Color _color,string _name)
+Player::Player(int _height,int _width,string _name)
 {
     srand (time(NULL));
     this->rectangle.x = RoundNum(round((int)(rand() % ((Game::LEVEL_WIDTH)) +1)),10);
@@ -35,9 +35,9 @@ Player::Player(int _height,int _width, SDL_Color _color,string _name)
     {
         this->rectangle.y -= 10;
     }
-    this->tileColor.r = _color.r;
-    this->tileColor.g = _color.g;
-    this->tileColor.b = _color.b;
+    this->tileColor.r = (int)(rand() % (255)) +1;
+    this->tileColor.g = (int)(rand() % (255)) +1;
+    this->tileColor.b = (int)(rand() % (255)) +1;
     //Player's width and height
     this->rectangle.h=10;
     this->rectangle.w=10;
@@ -97,7 +97,7 @@ void Player::die()
 {
     std::cout<<"Player named: "<<this->name<<" died. The owned area was: "<<this->getPercentO()<<"%"<<std::endl;
     isAlive = false;
-    Game::quit = true;
+   Game::quit = true;
     for(auto oTC :tilesO)
     {
         oTC->setOwner(nullptr);
@@ -263,6 +263,7 @@ void Player::render(SDL_Renderer *_rend)
         rectangleTmp.h = rectangle.h;
         rectangleTmp.w = rectangle.w;
         rectangleTmp.y = rectangle.y-Game::camera.y;
+        //actual render
         SDL_RenderDrawRect(_rend,&rectangleTmp);
         SDL_RenderPresent(_rend);
 }
