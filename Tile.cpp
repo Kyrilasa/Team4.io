@@ -1,6 +1,4 @@
 #include "Tile.h"
-#include "Player.h"
-#include "Game.h"
 Tile::Tile(int x, int y,SDL_Color _color)
 {
 

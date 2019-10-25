@@ -1,7 +1,8 @@
 #ifndef TILE_H
 #define TILE_H
 #include <string>
-#include <SDL.h>
+#include "Player.h"
+#include "Game.h"
 using namespace std;
 class Player;//forward declaration mert circular dependency
 class Tile

@@ -1,6 +1,6 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <iostream>
-#include <Game.h>
+#include "Game.h"
 using namespace std;
 #define BLUE {0,0,255}
 const int WIDTH = 640;
@@ -31,7 +31,7 @@ int main(int argc,char* args[])
     while(!Game::quit)
     {
 
-                game.update(e);
+                game.update();
                 game.render();
                 SDL_Delay(16);
     }
