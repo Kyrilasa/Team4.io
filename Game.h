@@ -8,7 +8,7 @@ class Game
         Game(int areaHeight,int areaWidth,string playerName,SDL_Window *window);
         virtual ~Game();
         void render();
-        void update(SDL_Event e);
+        void update();
         SDL_Renderer* renderer = nullptr;
         //static variables
         static SDL_Rect camera;
@@ -17,7 +17,8 @@ class Game
         static bool quit;
         static Tile* getTile(int x,int y,int gameAreaWidth,int gameAreaHeight);
         static void fillContested(Player* player,int gameAreaWidth,int gameAreaHeight);
-        static vector<vector<Tile*>*>gameArea;
+        static vector<vector<Tile*>>gameArea;
+        static SDL_Event e;
         //
     protected:
 
@@ -26,7 +27,7 @@ class Game
         void startingArea(Player* player);
          int areaHeight;
          int areaWidth;
-//        vector<Player*> Players;
+        vector<Player*> Players;
         Player* ThePlayer;
 };
 
