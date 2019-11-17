@@ -1,17 +1,17 @@
 #include <SDL2/SDL.h>
 #include <iostream>
+#include "Button.h"
 #include "Game.h"
 using namespace std;
-#define BLUE {0,0,255}
 const int WIDTH = 640;
 const int HEIGHT = 480;
+
+
 int main(int argc,char* args[])
 {
-    if(SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        std::cout << "Failed to initialize the SDL2 library\n";
-        return -1;
-    }
+
+
+    SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_Window *window = SDL_CreateWindow("Team4io",
                                           SDL_WINDOWPOS_CENTERED,
@@ -19,22 +19,43 @@ int main(int argc,char* args[])
                                           WIDTH, HEIGHT,
                                           0);
 
-    if(!window)
-    {
-        std::cout << "Failed to create window\n";
-        return -1;
-    }
 
-    SDL_Event e;
-    Game game(HEIGHT,WIDTH,"dummy",window);
-//    gameloop
-    while(!Game::quit)
-    {
+    Game::getInstance(HEIGHT,WIDTH,"dummy",window);
+    Game::getInstance()->initBoard();
+    Button button(WIDTH/2-150,HEIGHT/3,300,50);
 
-                game.update();
-                game.render();
-                SDL_Delay(16);
+
+    while(Game::getInstance()->isRunning())
+    {
+                SDL_SetRenderDrawColor( Game::getInstance()->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF );
+                SDL_RenderClear(  Game::getInstance()->getRenderer() );
+        if(Game::inMenu)
+        {
+            while(SDL_PollEvent(&Game::e))
+            {
+
+                button.handle_events();
+                if( Game::e.type == SDL_QUIT)
+                    {
+                        Game::getInstance()->End();
+
+                    }
+
+
+            }
+            button.show();
+        }else
+        {
+
+                Game::getInstance()->update();
+                Game::getInstance()->render();
+                SDL_Delay(30);
+
+        }
     }
+    delete Game::getInstance();
     SDL_Quit();
+    SDL_DestroyWindow(window);
+
     return 0;
 }

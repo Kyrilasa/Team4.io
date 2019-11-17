@@ -43,7 +43,7 @@ public:
     {
         return !(this->getName() == other->getName());
     }
-
+    static int velocity;
 private:
     vector<Tile*> tilesC;
     vector<Tile*> tilesO;

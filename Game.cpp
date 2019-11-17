@@ -8,10 +8,9 @@
 //b static variables
 vector<vector<Tile*>>Game::gameArea;
 SDL_Event Game::e;
-bool Game::quit = false;
-int Game::LEVEL_WIDTH = 1280;
-int Game::LEVEL_HEIGHT = 960;
-SDL_Rect Game::camera = {0,0,640,480};
+Game* Game::p_Instance = nullptr;
+const int Game::gameScale = 10;
+bool Game::inMenu = true;
 //e static variables
 std::string random_id( size_t length )
 {
@@ -29,49 +28,96 @@ std::string random_id( size_t length )
     std::generate_n( str.begin(), length, randchar );
     return str;
 }
+
 Game::Game(int areaHeight,int areaWidth,string playerName,SDL_Window *window)
 {
 
     renderer =  SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
     this->areaHeight = areaHeight;
     this->areaWidth = areaWidth;
-    this->ThePlayer = new Player(areaHeight, areaWidth,random_id(10));
+    this->quit = false;
 
-//    for(int i = 0;i<10;i++)
+    this->LEVEL_WIDTH = 100;
+    this->LEVEL_HEIGHT = 100;
+    (this->camera) =new SDL_Rect{0,0,640,480};
+    GSM = new GameStateMachine();
+    std::cout<<"Game successfully constructed with "<<LEVEL_WIDTH<<"*"<<LEVEL_HEIGHT<<" size map!"<<std::endl;
+
+//    for(int i = 0;i<1;i++)
 //    {
-//        this->Players.push_back(new Player(areaHeight,areaWidth,random_id(15 )));
+//        this->Players.push_back(new Player(areaHeight,areaWidth,random_id(10)));
 //    }
-    initBoard();
+
 
 }
+Game* Game::getInstance(int areaHeight,int areaWidth,string playerName,SDL_Window *window)
+{
+    if(!p_Instance)
+    {
+        p_Instance = new Game(areaHeight,areaWidth,playerName,window);
+        return p_Instance;
+    }else
+    {
+        cout<<"Game is already constructed please use the other overloaded function!"<<endl;
+        return nullptr;
+    }
 
+}
+Game* Game::getInstance()
+{
+    if(!p_Instance)
+    {
+        cout<<"Game is not initialized please provide initializing variables"<<endl;
+        return nullptr;
+    }else
+    {
+        return p_Instance;
+    }
+}
 Game::~Game()
 {
-    for(auto k:gameArea)
+    //TODO not all memory freed
+    for(auto &k:gameArea)
     {
-        for(auto p:k)
+        for(auto &p:k)
         {
             delete p;
         }
     }
     delete ThePlayer;
+    SDL_DestroyRenderer(this->renderer);
+
+}
+bool Game::isRunning()
+{
+    return !quit;
+}
+void Game::End()
+{
+    this->quit=true;
 }
 void Game::initBoard()
 {
+    std::cout<<"Board is initializing..."<<std::endl;
+    this->ThePlayer = new Player(areaHeight, areaWidth,random_id(30));
+
     //render tiles for the first time && get starting zone around  player...
-    for(int i = 0; i < Game::LEVEL_HEIGHT/10; i++)
+    for(int i = 0; i < this->LEVEL_HEIGHT/Game::gameScale; i++)
     {
-        Game::gameArea.push_back(vector<Tile*>());
-        for(int j = 0; j < Game::LEVEL_WIDTH/10; j++)
+        Game::gameArea.push_back(vector<Tile*>(this->LEVEL_WIDTH/Game::gameScale));
+
+        for(int j = 0; j < this->LEVEL_WIDTH/Game::gameScale; j++)
         {
-            Game::gameArea[i].push_back(new Tile(j*10,i*10,{150,10,255}));
-            Game::gameArea[i].back()->render(this->renderer);
+            Game::gameArea[i][j]=(new Tile(j*Game::gameScale,i*Game::gameScale,{255,255,255}));
 
         }
     }
-    startingArea(this->ThePlayer);
-    SDL_RenderPresent(this->renderer);
+//    for(auto k:Players)
+//    {
+//        startingArea(k);
+//    }
 
+    std::cout<<"Board is successfully initialized!"<<std::endl;
 }
 //draws 1-1 tile-owned around player
 void Game::startingArea(Player* player)
@@ -79,51 +125,43 @@ void Game::startingArea(Player* player)
     int x = player->getX();
     int y = player->getY();
 
-    for(int i = x-10; i <= x+10; i+=10)
+    for(int i = x-Game::gameScale; i <= x+Game::gameScale; i+=Game::gameScale)
     {
-        for(int j = y-10; j <= y+10; j+=10)
+        for(int j = y-Game::gameScale; j <= y+Game::gameScale; j+=Game::gameScale)
         {
+            if((j>0&&j<this->LEVEL_HEIGHT)&&(i>0&&i<this->LEVEL_WIDTH))
+            {
 
-            player->setTileO(getTile(i,j,this->areaWidth,this->areaHeight));
+            player->setTileO(getTile(i,j));
+            }
         }
     }
 }
 
-Tile* Game::getTile(int x,int y,int gameAreaWidth,int gameAreaHeight)
+Tile* Game::getTile(int x,int y)
 {
-    //TODO get rid of this
-    if(x>=Game::LEVEL_WIDTH)
-    {
-        return Game::gameArea.at(y/10).at((x-10)/10);
-    }
-    if(x<0)
-    {
-        return Game::gameArea.at(y/10).at((x+10)/10);
-    }
-    if(y>=Game::LEVEL_HEIGHT)
-    {
-        return Game::gameArea.at((y-10)/10).at((x)/10);
-    }
-    if(y<0)
-    {
-        return Game::gameArea.at((y+10)/10).at((x)/10);
-    }
-    return Game::gameArea.at(y/10).at(x/10);
+  //get the indexed tile on (x,y) divided by scale
+    return Game::gameArea.at(y/Game::gameScale).at(x/Game::gameScale);
 }
 void Game::render()
 {
 
     //b render Tiles
-    //TODO render optimization to render only what is visible for player instead of whole map
-    int counter=0;
+    //(DONE)TODO render optimization to render only what is visible for player instead of whole map
+    //loop through tiles skip those with smaller or bigger value of y and x (in perspective of player)
+
  for(auto &p:gameArea)
     {
 
         vector<Tile*> tmp(p.begin(),p.end());
         //check if the y coordinate of the tile vector column visible to player
-            int pYp=ThePlayer->getY()+(Game::camera.h/2);
-            int pYm=ThePlayer->getY()-(Game::camera.h/2);
+        //pYp is the bottom Y value pYm is the top (screen)
+            int pYp=ThePlayer->getY()+(Game::getInstance()->getCamera()->h/2);
+            int pYm=ThePlayer->getY()-(Game::getInstance()->getCamera()->h/2);
+            //the actual row's Y value
             int kY=tmp[0]->getY();
+
+            //making test variables  match real values if out of bounds
             if(pYp>Game::LEVEL_HEIGHT)
             {
                 pYm -=(pYp-Game::LEVEL_HEIGHT);
@@ -135,6 +173,7 @@ void Game::render()
                 pYm=0;
             }
 
+            //if y is in bound proceed with render those x tiles <=&&=> player x
             if((kY<=pYp)&&(kY>=pYm))
             {
         for(auto k:tmp)
@@ -142,8 +181,8 @@ void Game::render()
 
         //check if the x coordinate of the tile vector row visible to player
             int kX=k->getX();
-            int pXp=ThePlayer->getX()+(Game::camera.w/2);
-            int pXm=ThePlayer->getX()-(Game::camera.w/2);
+            int pXp=ThePlayer->getX()+(Game::getInstance()->getCamera()->w/2);
+            int pXm=ThePlayer->getX()-(Game::getInstance()->getCamera()->w/2);
             if(pXp>Game::LEVEL_WIDTH)
             {
                 pXm -=(pXp-Game::LEVEL_WIDTH);
@@ -157,8 +196,7 @@ void Game::render()
             }
             if((kX>=pXm)&&(kX<=pXp))
             {
-            k->render(this->renderer);
-            counter++;
+            k->render();
             }
         }
             }
@@ -173,7 +211,7 @@ void Game::render()
 }
 
 void Game::fillContested(Player* player,int gameAreaWidth,int gameAreaHeight) {
-    //go through horizontally and vertically if
+    //get the boundary rectangle of owned territory
         int maxX = 0;
         int minX = gameAreaWidth;
         int maxY = 0;
@@ -184,39 +222,32 @@ void Game::fillContested(Player* player,int gameAreaWidth,int gameAreaHeight) {
             if(t->getY() > maxY) maxY = t->getY();
             if(t->getY() < minY) minY = t->getY();
         }
-        //if player reconnect to base from the right.
-        if(Game::getTile(minX-10,minY,gameAreaWidth,gameAreaHeight)->getOwner()==player)
-        {
-            minX-=10;
-        }
-        map<Tile*,int> needToFillMap;
-    for(auto i = minY;i<=maxY;i+=10)
+        //checking if there is open space in owned tiles horizontally/vertically
+    map<Tile*,int> needToFillMap;
+    for(auto i = minY;i<=maxY;i+=Game::gameScale)
     {
-            for(auto j= minX;j<=maxX;j+=10)
+            for(auto j= minX;j<=maxX;j+=Game::gameScale)
             {
-                Tile *tmpTile = Game::getTile(j,i,gameAreaWidth,gameAreaHeight);
+                Tile *tmpTile = Game::getTile(j,i);
 
                 if((tmpTile->getOwner()==player))
                 {
-                    if(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getOwner()==nullptr)
+                    if(Game::getTile(j+Game::gameScale,i)->getOwner()==nullptr)
                     {
-//                        case
-//                        100000001111000|
-//                        where contested is 1 ,| is the border and 0 needs to be filled with player color
 
-                        Tile* startNode = Game::getTile(j,i,gameAreaWidth,gameAreaHeight);
-                        while(Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight)->getOwner()==nullptr&&(j+10)<=maxX)
+                        Tile* startNode = Game::getTile(j,i);
+                        while(Game::getTile(j+Game::gameScale,i)->getOwner()==nullptr&&(j+Game::gameScale)<=maxX)
                         {
-                        j+=10;
+                        j+=Game::gameScale;
                         }
-                        Tile* endNode = Game::getTile(j+10,i,gameAreaWidth,gameAreaHeight);
+                        Tile* endNode = Game::getTile(j+Game::gameScale,i);
 
 
                         if(endNode->getOwner()!=nullptr||endNode->getOwner()==player)
                         {
-                            for(auto z = startNode->getX();z<=endNode->getX();z+=10)
+                            for(auto z = startNode->getX();z<=endNode->getX();z+=Game::gameScale)
                               {
-                                needToFillMap[Game::getTile(z,i,gameAreaWidth,gameAreaHeight)]++;
+                                needToFillMap[Game::getTile(z,i)]++;
                               }
                         }
                     }
@@ -226,29 +257,29 @@ void Game::fillContested(Player* player,int gameAreaWidth,int gameAreaHeight) {
             }
     }
 
-    for(auto i = minX;i<=maxX;i+=10)
+    for(auto i = minX;i<=maxX;i+=Game::gameScale)
     {
-            for(auto j= minY;j<=maxY;j+=10)
+            for(auto j= minY;j<=maxY;j+=Game::gameScale)
             {
-                Tile *tmpTile = Game::getTile(i,j,gameAreaWidth,gameAreaHeight);
+                Tile *tmpTile = Game::getTile(i,j);
 
                 if((tmpTile->getOwner()==player))
                 {
-                    if(Game::getTile(i,j+10,gameAreaWidth,gameAreaHeight)->getOwner()==nullptr)
+                    if(Game::getTile(i,j+Game::gameScale)->getOwner()==nullptr)
                     {
-                        Tile* startNode = Game::getTile(i,j,gameAreaWidth,gameAreaHeight);
-                        while(Game::getTile(i,j+10,gameAreaWidth,gameAreaHeight)->getOwner()==nullptr&&(j+10)<=maxY)
+                        Tile* startNode = Game::getTile(i,j);
+                        while(Game::getTile(i,j+Game::gameScale)->getOwner()==nullptr&&(j+Game::gameScale)<=maxY)
                         {
-                        j+=10;
+                        j+=Game::gameScale;
                         }
-                        Tile* endNode = Game::getTile(i,j+10,gameAreaWidth,gameAreaHeight);
+                        Tile* endNode = Game::getTile(i,j+Game::gameScale);
 
 
                         if(endNode->getOwner()!=nullptr||endNode->getOwner()==player)
                         {
-                            for(auto z = startNode->getY();z<=endNode->getY();z+=10)
+                            for(auto z = startNode->getY();z<=endNode->getY();z+=Game::gameScale)
                               {
-                                needToFillMap[Game::getTile(i,z,gameAreaWidth,gameAreaHeight)]++;
+                                needToFillMap[Game::getTile(i,z)]++;
                               }
                         }
                     }
@@ -280,40 +311,43 @@ void Game::update()
             }
             else if(e.type == SDL_KEYDOWN)
             {
+                //if it is the opposite direction skip
                 switch(e.key.keysym.sym)
                 {
                 case SDLK_LEFT:
-                    if(this->ThePlayer->dx != 10)
+                    if(this->ThePlayer->dx != Player::velocity)
                     {
-                    this->ThePlayer->dx = -10;
+                    this->ThePlayer->dx = -Player::velocity;
                     this->ThePlayer->dy= 0;
                     }
                     break;
                 case SDLK_RIGHT:
-                    if(this->ThePlayer->dx != -10)
+                    if(this->ThePlayer->dx != -Player::velocity)
                     {
-                    this->ThePlayer->dx= 10;
+                    this->ThePlayer->dx= Player::velocity;
                     this->ThePlayer->dy=0;
                     }
                     break;
                 case SDLK_UP:
-                    if(this->ThePlayer->dy != 10)
+                    if(this->ThePlayer->dy != Player::velocity)
                     {
                     this->ThePlayer->dx= 0;
-                    this->ThePlayer->dy=-10;
+                    this->ThePlayer->dy=-Player::velocity;
                     }
                     break;
                 case SDLK_DOWN:
-                    if(this->ThePlayer->dy != -10)
+                    if(this->ThePlayer->dy != -Player::velocity)
                     {
                     this->ThePlayer->dx= 0;
-                    this->ThePlayer->dy=10;
+                    this->ThePlayer->dy=Player::velocity;
                     }
                     break;
+
                 default:
                     break;
                 }
             }
+
 
         }
 //        for(auto t:this->Players)
@@ -321,4 +355,23 @@ void Game::update()
 //        t->update();
 //    }
 this->ThePlayer->update();
+}
+SDL_Renderer* Game::getRenderer()
+{
+    return this->renderer;
+}
+
+SDL_Rect* Game::getCamera()
+{
+    return this->camera;
+}
+
+int Game::getLevelWidth()
+{
+    return this->LEVEL_WIDTH;
+}
+
+int Game::getLevelHeight()
+{
+    return this->LEVEL_WIDTH;
 }

@@ -6,6 +6,7 @@
 #include  <iostream>
 #include <math.h>
 using namespace std;
+int Player::velocity = 10;
 int RoundNum(int num, int step)
 {
     if (num >= 0)
@@ -16,54 +17,55 @@ int RoundNum(int num, int step)
 Player::Player(int _height,int _width,string _name)
 {
     srand (time(NULL));
-    this->rectangle.x = RoundNum(round((int)(rand() % ((Game::LEVEL_WIDTH)) +1)),10);
-    this->rectangle.y = RoundNum(round((int)(rand() % (Game::LEVEL_HEIGHT) +1)),10 );
+    this->rectangle.x = RoundNum(round((int)(rand() % ((Game::getInstance()->getLevelWidth())))),Game::gameScale);
+    this->rectangle.y = RoundNum(round((int)(rand() % (Game::getInstance()->getLevelHeight()))),Game::gameScale );
 
     if(this->rectangle.x < 0)
     {
-        this->rectangle.x += 10;
+        this->rectangle.x += Game::gameScale;
     }
-    else if(this->rectangle.x > (Game::LEVEL_WIDTH-10))
+    else if(this->rectangle.x > (Game::getInstance()->getLevelWidth()-Game::gameScale))
     {
-        this->rectangle.x-= 10;
+        this->rectangle.x-= Game::gameScale;
     }
-    if(this->rectangle.y < 10)
+    if(this->rectangle.y < Game::gameScale)
     {
-        this->rectangle.y+= 10;
+        this->rectangle.y+= Game::gameScale;
     }
-    else if(this->rectangle.y > (Game::LEVEL_HEIGHT) - 10)
+    else if(this->rectangle.y > (Game::getInstance()->getLevelHeight()) - Game::gameScale)
     {
-        this->rectangle.y -= 10;
+        this->rectangle.y -= Game::gameScale;
     }
-    this->tileColor.r = (int)(rand() % (255)) +1;
-    this->tileColor.g = (int)(rand() % (255)) +1;
-    this->tileColor.b = (int)(rand() % (255)) +1;
+    this->tileColor.r = (int)(rand() % (255));
+    this->tileColor.g = (int)(rand() % (255));
+    this->tileColor.b = (int)(rand() % (255));
     //Player's width and height
-    this->rectangle.h=10;
-    this->rectangle.w=10;
+    this->rectangle.h=Game::gameScale;
+    this->rectangle.w=Game::gameScale;
     gameAreaHeight = _height;
     gameAreaWidth = _width;
     this->name=_name;
-    double randWay = rand()%5;
-    if (randWay < 0.25)
+    double randWay = rand()%4;
+    std::cout<<randWay<<std::endl;
+    if (randWay < 1)
     {
-        this->dx = 10;
+        this->dx = Player::velocity;
         this->dy = 0;
     }
-    else if (randWay < 5)
+    else if (randWay < 2)
     {
-        this->dx = -10;
+        this->dx = -Player::velocity;
         this->dy = 0;
     }
-    else if (randWay < 0.75)
+    else if (randWay < 3)
     {
         this->dx = 0;
-        this->dy = 10;
+        this->dy = Player::velocity;
     }
     else
     {
         this->dx = 0;
-        this->dy = -10;
+        this->dy = -Player::velocity;
     }
 
 }
@@ -97,7 +99,8 @@ void Player::die()
 {
     std::cout<<"Player named: "<<this->name<<" died. The owned area was: "<<this->getPercentO()<<"%"<<std::endl;
     isAlive = false;
-   Game::quit = true;
+
+    Game::getInstance()->End();
     for(auto oTC :tilesO)
     {
         oTC->setOwner(nullptr);
@@ -141,7 +144,7 @@ vector<Tile*> Player::getTilesO()
 
 double Player::getPercentO()
 {
-    return (double)this->getTilesO().size()*100/(Game::LEVEL_HEIGHT*Game::LEVEL_WIDTH/100);
+    return (double)this->getTilesO().size()*100/(Game::getInstance()->getLevelHeight()*Game::getInstance()->getLevelWidth()/100);
 }
 
 
@@ -218,36 +221,36 @@ int Player::compareTo(Player *player)
 void Player::update()
 {
             this->move();
-            Game::camera.x = ( getX() + this->rectangle.h / 2 ) - this->gameAreaWidth / 2;
-            Game::camera.y = ( getY() + this->rectangle.h / 2 ) - this->gameAreaHeight / 2;
+            Game::getInstance()->getCamera()->x = ( getX() + this->rectangle.h / 2 ) - this->gameAreaWidth / 2;
+            Game::getInstance()->getCamera()->y = ( getY() + this->rectangle.h / 2 ) - this->gameAreaHeight / 2;
 
-    if( Game::camera.x < 0 )
+    if( Game::getInstance()->getCamera()->x < 0 )
     {
-        Game::camera.x = 0;
+        Game::getInstance()->getCamera()->x = 0;
     }
-    if( Game::camera.y < 0 )
+    if( Game::getInstance()->getCamera()->y < 0 )
     {
-        Game::camera.y = 0;
+        Game::getInstance()->getCamera()->y = 0;
     }
-    if( Game::camera.x > Game::LEVEL_WIDTH - Game::camera.w )
+    if( Game::getInstance()->getCamera()->x > Game::getInstance()->getLevelWidth() - Game::getInstance()->getCamera()->w )
     {
-        Game::camera.x = Game::LEVEL_WIDTH - Game::camera.w;
+        Game::getInstance()->getCamera()->x = Game::getInstance()->getLevelWidth() - Game::getInstance()->getCamera()->w;
     }
-    if( Game::camera.y > Game::LEVEL_HEIGHT - Game::camera.h )
+    if( Game::getInstance()->getCamera()->y > Game::getInstance()->getLevelHeight() - Game::getInstance()->getCamera()->h )
     {
-        Game::camera.y = Game::LEVEL_HEIGHT - Game::camera.h;
+        Game::getInstance()->getCamera()->y = Game::getInstance()->getLevelHeight() - Game::getInstance()->getCamera()->h;
     }
-            if(this->getX() < 0 || this->getX() >= Game::LEVEL_WIDTH || this->getY() < 0 || this->getY() >= Game::LEVEL_HEIGHT){
+            if(this->getX() < 0 || this->getX() >= Game::getInstance()->getLevelWidth() || this->getY() < 0 || this->getY() >= Game::getInstance()->getLevelHeight()){
                 this->die();
 
             }else{
-                Tile* tile = Game::getTile(this->getX(), this->getY(),gameAreaWidth,gameAreaHeight);
+                Tile* tile = Game::getTile(this->getX(), this->getY());
                 this->checkCollision(tile);
                 this->setCurrentTile(tile);
                 if (tile->getOwner() != this) {
                     this->setTileC(tile);
                 } else if (this->getTilesC().size() > 0) {
-this->contestToO();
+                    this->contestToO();
                     Game::fillContested(this,this->gameAreaWidth,this->gameAreaHeight);
 
 
@@ -257,12 +260,12 @@ this->contestToO();
 void Player::render(SDL_Renderer *_rend)
 {
         SDL_SetRenderDrawColor( _rend, this->color.r, this->color.g,this->color.b, 255 );
-        //camera
+        //getInstance()->getCamera()
         SDL_Rect rectangleTmp;
-        rectangleTmp.x = rectangle.x-Game::camera.x;
+        rectangleTmp.x = rectangle.x-Game::getInstance()->getCamera()->x;
         rectangleTmp.h = rectangle.h;
         rectangleTmp.w = rectangle.w;
-        rectangleTmp.y = rectangle.y-Game::camera.y;
+        rectangleTmp.y = rectangle.y-Game::getInstance()->getCamera()->y;
         //actual render
         SDL_RenderDrawRect(_rend,&rectangleTmp);
         SDL_RenderPresent(_rend);

@@ -1,8 +1,7 @@
 #ifndef TILE_H
 #define TILE_H
 #include <string>
-#include "Player.h"
-#include "Game.h"
+#include <SDL2/SDL.h>
 using namespace std;
 class Player;//forward declaration mert circular dependency
 class Tile
@@ -14,7 +13,7 @@ class Tile
         Player* getContestedO();
         void setContestedO(Player *contestedO);
         Player* getOwner();
-        void render(SDL_Renderer *r);
+        void render();
         void update();
         void setOwner(Player *owner);
         int getX();
