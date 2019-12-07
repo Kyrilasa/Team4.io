@@ -37,8 +37,8 @@ Game::Game(int areaHeight,int areaWidth,string playerName,SDL_Window *window)
     this->areaWidth = areaWidth;
     this->quit = false;
 
-    this->LEVEL_WIDTH = 100;
-    this->LEVEL_HEIGHT = 100;
+    this->LEVEL_WIDTH = 2000;
+    this->LEVEL_HEIGHT = 2000;
     (this->camera) =new SDL_Rect{0,0,640,480};
     GSM = new GameStateMachine();
     std::cout<<"Game successfully constructed with "<<LEVEL_WIDTH<<"*"<<LEVEL_HEIGHT<<" size map!"<<std::endl;
@@ -116,6 +116,7 @@ void Game::initBoard()
 //    {
 //        startingArea(k);
 //    }
+startingArea(this->ThePlayer);
 
     std::cout<<"Board is successfully initialized!"<<std::endl;
 }
