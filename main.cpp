@@ -5,8 +5,8 @@
 #include "SDL2/SDL_image.h"
 
 using namespace std;
-const int WIDTH = 640;
-const int HEIGHT = 480;
+const int WIDTH = 800;
+const int HEIGHT = 600;
 
 int main(int argc,char* args[])
 {
@@ -30,7 +30,7 @@ int main(int argc,char* args[])
                 SDL_RenderClear(  Game::getInstance()->getRenderer() );
                 Game::getInstance()->update();
                 Game::getInstance()->render();
-                SDL_Delay(300);
+                SDL_Delay(30);
 
         }
     

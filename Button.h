@@ -9,10 +9,10 @@ class Button
     private:
     //The attributes of the button
     SDL_Rect box;
-   char* path;
+ const  char* path;
     public:
     //Initialize the variables
-    Button( int x, int y,char* path );
+    Button( int x, int y,const char* path );
    ~Button();
     SDL_Rect* getBox();
     SDL_Texture* texture;

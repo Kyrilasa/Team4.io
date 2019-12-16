@@ -42,7 +42,7 @@ Game::Game(int areaHeight,int areaWidth,string playerName,SDL_Window *window)
 
     this->LEVEL_WIDTH = 2000;
     this->LEVEL_HEIGHT = 2000;
-    (this->camera) =new SDL_Rect{0,0,640,480};
+    (this->camera) =new SDL_Rect{0,0,areaWidth,areaHeight};
     GSM = new GameStateMachine();
     GSM->pushState(new MenuState(areaWidth,areaHeight));
     std::cout<<"Game successfully constructed with "<<LEVEL_WIDTH<<"*"<<LEVEL_HEIGHT<<" size map!"<<std::endl;

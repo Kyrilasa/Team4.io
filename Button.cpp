@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Button::Button( int x, int y,char* path )
+Button::Button( int x, int y,const char* path )
 {
     //Set the button's attributes
     this->path = path;
