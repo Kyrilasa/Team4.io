@@ -11,8 +11,6 @@ class PlayState : public GameState
         virtual ~PlayState();
         virtual void update();
         virtual void render();
-        virtual bool onEnter();
-        virtual bool onExit();
         virtual std::string getStateId()const{return playID;};
     private:
         const static std::string playID;

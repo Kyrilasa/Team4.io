@@ -223,7 +223,6 @@ void Player::update()
             this->move();
             Game::getInstance()->getCamera()->x = ( getX() + this->rectangle.h / 2 ) - this->gameAreaWidth / 2;
             Game::getInstance()->getCamera()->y = ( getY() + this->rectangle.h / 2 ) - this->gameAreaHeight / 2;
-
     if( Game::getInstance()->getCamera()->x < 0 )
     {
         Game::getInstance()->getCamera()->x = 0;

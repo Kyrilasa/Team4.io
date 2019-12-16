@@ -15,6 +15,8 @@ class Game
         bool isRunning();
         void End();
         static bool inMenu;
+        static bool isConnectToServer;
+        static void connectToServer();
         static Tile* getTile(int x,int y);
         static void fillContested(Player* player,int gameAreaWidth,int gameAreaHeight);
         static vector<vector<Tile*>>gameArea;
@@ -23,8 +25,13 @@ class Game
         SDL_Rect* getCamera();
         int getLevelWidth();
         int getLevelHeight();
+       
+       
         void initBoard();
-        //singleton
+        GameStateMachine* getGSM();
+	void innerRenderP();
+	void innerUpdateP();
+	//singleton
         static Game* getInstance();
         static Game* getInstance(int areaHeight,int areaWidth,string playerName,SDL_Window *window);
     private:

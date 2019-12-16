@@ -1,12 +1,19 @@
 #include "Button.h"
 #include "Game.h"
-Button::Button( int x, int y, int w, int h )
+#include "SDL2/SDL_image.h"
+
+using namespace std;
+
+Button::Button( int x, int y,char* path )
 {
     //Set the button's attributes
-    box.x = x;
+    this->path = path;
+	box.x = x;
     box.y = y;
-    box.w = w;
-    box.h = h;
+clicked = false;
+}
+Button::~Button()
+{
 
 }
 SDL_Rect* Button::getBox()
@@ -31,7 +38,10 @@ void Button::handle_events()
             //If the mouse is over the button
             if( ( x > box.x ) && ( x < box.x + box.w ) && ( y > box.y ) && ( y < box.y + box.h ) )
             {
-                Game::inMenu=false;
+                //Close the menu
+                clicked = true;
+
+                //Check other players
             }
         }
     }
@@ -40,8 +50,16 @@ void Button::handle_events()
 
 void Button::show()
 {
-    SDL_SetRenderDrawColor(Game::getInstance()->getRenderer(),100,100,100,255);
-    SDL_RenderFillRect(Game::getInstance()->getRenderer(),&this->box);
-    SDL_RenderPresent(Game::getInstance()->getRenderer());
+    SDL_Surface* surface = IMG_Load(path);
+    texture =  SDL_CreateTextureFromSurface(Game::getInstance()->getRenderer(),surface);
+    SDL_FreeSurface(surface);
+    int w,h;
+    SDL_QueryTexture(texture,NULL,NULL,&w,&h);
+    box.w = w;
+    box.h = h;
+	SDL_RenderCopy(Game::getInstance()->getRenderer(),texture,NULL,&box);
 }
-
+bool Button::isClicked()
+{
+	return this->clicked;
+}

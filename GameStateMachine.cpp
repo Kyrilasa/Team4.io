@@ -13,24 +13,21 @@ GameStateMachine::~GameStateMachine()
 void GameStateMachine::pushState(GameState* state)
 {
     this->gameStates.push(state);
-    this->gameStates.top()->onEnter();
+  
 }
 void GameStateMachine::popState()
 {
     if(!this->gameStates.empty())
     {
-        if(this->gameStates.top()->onExit())
-        {
             delete this->gameStates.top();
             this->gameStates.pop();
-        }
     }
 }
 void GameStateMachine::changeState(GameState* state)
 {
     if(!this->gameStates.empty())
     {
-        if(this->gameStates.top()->getStateId()==state->getStateId())
+    if(this->gameStates.top()->getStateId()==state->getStateId())
         {
             return;
         }else
@@ -39,4 +36,8 @@ void GameStateMachine::changeState(GameState* state)
         }
     }
     this->pushState(state);
+}
+GameState* GameStateMachine::getCurrent()
+{
+	return this->gameStates.top();
 }
